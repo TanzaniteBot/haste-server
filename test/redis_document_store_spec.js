@@ -1,54 +1,55 @@
-/* global it, describe, afterEach */
+// @ts-check
 
-var assert = require('assert');
+import { equal, ok } from 'assert';
 
-var winston = require('winston');
-winston.remove(winston.transports.Console);
+import { remove, transports } from 'winston';
+remove(transports.Console);
 
-var RedisDocumentStore = require('../lib/document_stores/redis');
+import RedisDocumentStore, { client } from '../lib/document_stores/redis';
 
-describe('redis_document_store', function() {
+describe('redis_document_store', () => {
+	/* reconnect to redis on each test */
+	afterEach(() => {
+		if (client) {
+			client.quit();
+			client = false;
+		}
+	});
 
-  /* reconnect to redis on each test */
-  afterEach(function() {
-    if (RedisDocumentStore.client) {
-      RedisDocumentStore.client.quit();
-      RedisDocumentStore.client = false;
-    }
-  });
+	describe('set', function () {
+		it('should be able to set a key and have an expiration set', done => {
+			const store = new RedisDocumentStore({ expire: 10 });
+			store.set('hello1', 'world', function () {
+				client.ttl('hello1', function (err, res) {
+					ok(res > 1);
+					done();
+				});
+			});
+		});
 
-  describe('set', function() {
+		it('should not set an expiration when told not to', done => {
+			const store = new RedisDocumentStore({ expire: 10 });
+			store.set(
+				'hello2',
+				'world',
+				function () {
+					client.ttl('hello2', function (err, res) {
+						equal(-1, res);
+						done();
+					});
+				},
+				true
+			);
+		});
 
-    it('should be able to set a key and have an expiration set', function(done) {
-      var store = new RedisDocumentStore({ expire: 10 });
-      store.set('hello1', 'world', function() {
-        RedisDocumentStore.client.ttl('hello1', function(err, res) {
-          assert.ok(res > 1);
-          done();
-        });
-      });
-    });
-
-    it('should not set an expiration when told not to', function(done) {
-      var store = new RedisDocumentStore({ expire: 10 });
-      store.set('hello2', 'world', function() {
-        RedisDocumentStore.client.ttl('hello2', function(err, res) {
-          assert.equal(-1, res);
-          done();
-        });
-      }, true);
-    });
-
-    it('should not set an expiration when expiration is off', function(done) {
-      var store = new RedisDocumentStore({ expire: false });
-      store.set('hello3', 'world', function() {
-        RedisDocumentStore.client.ttl('hello3', function(err, res) {
-          assert.equal(-1, res);
-          done();
-        });
-      });
-    });
-
-  });
-
+		it('should not set an expiration when expiration is off', done => {
+			const store = new RedisDocumentStore({ expire: false });
+			store.set('hello3', 'world', function () {
+				client.ttl('hello3', function (err, res) {
+					equal(-1, res);
+					done();
+				});
+			});
+		});
+	});
 });

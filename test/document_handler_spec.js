@@ -1,26 +1,21 @@
-/* global describe, it */
+// @ts-check
 
-var assert = require('assert');
+import { equal } from 'assert';
+import DocumentHandler from '../lib/document_handler';
+import Generator from '../lib/key_generators/random';
 
-var DocumentHandler = require('../lib/document_handler');
-var Generator = require('../lib/key_generators/random');
+describe('document_handler', function () {
+	describe('randomKey', function () {
+		it('should choose a key of the proper length', () => {
+			const gen = new Generator();
+			const dh = new DocumentHandler({ keyLength: 6, keyGenerator: gen });
+			equal(6, dh.acceptableKey().length);
+		});
 
-describe('document_handler', function() {
-
-  describe('randomKey', function() {
-
-    it('should choose a key of the proper length', function() {
-      var gen = new Generator();
-      var dh = new DocumentHandler({ keyLength: 6, keyGenerator: gen });
-      assert.equal(6, dh.acceptableKey().length);
-    });
-
-    it('should choose a default key length', function() {
-      var gen = new Generator();
-      var dh = new DocumentHandler({ keyGenerator: gen });
-      assert.equal(dh.keyLength, DocumentHandler.defaultKeyLength);
-    });
-
-  });
-
+		it('should choose a default key length', () => {
+			const gen = new Generator();
+			const dh = new DocumentHandler({ keyGenerator: gen });
+			equal(dh.keyLength, DocumentHandler.defaultKeyLength);
+		});
+	});
 });

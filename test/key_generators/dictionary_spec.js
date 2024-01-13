@@ -1,34 +1,32 @@
-/* global describe, it */
+// @ts-check
 
-const assert = require('assert');
+import { equal, throws } from 'assert';
+import { writeFileSync } from 'fs';
+import Generator from '../../lib/key_generators/dictionary';
 
-const fs = require('fs');
+describe('DictionaryGenerator', () => {
+	describe('options', () => {
+		it('should throw an error if given no options', () => {
+			throws(() => {
+				new Generator();
+			}, Error);
+		});
 
-const Generator = require('../../lib/key_generators/dictionary');
+		it('should throw an error if given no path', () => {
+			throws(() => {
+				new Generator({});
+			}, Error);
+		});
+	});
+	describe('generation', function () {
+		it('should return a key of the proper number of words from the given dictionary', () => {
+			const path = '/tmp/haste-server-test-dictionary';
+			const words = ['cat'];
+			writeFileSync(path, words.join('\n'));
 
-describe('DictionaryGenerator', function() {
-  describe('options', function() {
-    it('should throw an error if given no options', () => {
-      assert.throws(() => {
-        new Generator();
-      }, Error);
-    });
-
-    it('should throw an error if given no path', () => {
-      assert.throws(() => {
-        new Generator({});
-      }, Error);
-    });
-  });
-  describe('generation', function() {
-    it('should return a key of the proper number of words from the given dictionary', () => {
-      const path = '/tmp/haste-server-test-dictionary';
-      const words = ['cat'];
-      fs.writeFileSync(path, words.join('\n'));
-
-      const gen = new Generator({path}, () => {
-        assert.equal('catcatcat', gen.createKey(3));
-      });
-    });
-  });
+			const gen = new Generator({ path }, () => {
+				equal('catcatcat', gen.createKey(3));
+			});
+		});
+	});
 });
