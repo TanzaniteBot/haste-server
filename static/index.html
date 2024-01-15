@@ -33,7 +33,7 @@
 			$(function() {
 				var baseUrl = window.location.href.split('/');
 				baseUrl = baseUrl.slice(0, baseUrl.length - 1).join('/') + '/';
-				app = new haste('hastebin', { twitter: true, baseUrl: baseUrl });
+				app = new haste('hastebin', { twitter: false, baseUrl: baseUrl });
 				handlePop({ target: window });
 			});
 		</script>
