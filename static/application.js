@@ -20,18 +20,17 @@ class haste_document {
 
   // Get this document from the server and lock it here
   load(key, callback, lang) {
-    var _this = this;
-    $.ajax(_this.app.baseUrl + 'documents/' + key, {
+    $.ajax(this.app.baseUrl + 'documents/' + key, {
       type: 'get',
       dataType: 'json',
-      success: function (res) {
-        _this.locked = true;
-        _this.key = key;
-        _this.data = res.data;
+      success: (res) => {
+        this.locked = true;
+        this.key = key;
+        this.data = res.data;
         try {
           var high;
           if (lang === 'txt') {
-            high = { value: _this.htmlEscape(res.data) };
+            high = { value: this.htmlEscape(res.data) };
           }
           else if (lang) {
             high = hljs.highlight(res.data, { language: lang });
@@ -50,7 +49,7 @@ class haste_document {
           lineCount: res.data.split('\n').length
         });
       },
-      error: function () {
+      error: () => {
         callback(false);
       }
     });
@@ -62,15 +61,14 @@ class haste_document {
       return false;
     }
     this.data = data;
-    var _this = this;
-    $.ajax(_this.app.baseUrl + 'documents', {
+    $.ajax(this.app.baseUrl + 'documents', {
       type: 'post',
       data: data,
       dataType: 'json',
       contentType: 'text/plain; charset=utf-8',
-      success: function (res) {
-        _this.locked = true;
-        _this.key = res.key;
+      success: (res) => {
+        this.locked = true;
+        this.key = res.key;
         var high = hljs.highlightAuto(data);
         callback(null, {
           value: high.value,
@@ -79,7 +77,7 @@ class haste_document {
           lineCount: data.split('\n').length
         });
       },
-      error: function (res) {
+      error: (res) => {
         try {
           callback($.parseJSON(res.responseText));
         }
@@ -134,7 +132,7 @@ class haste {
   showMessage(msg, cls) {
     var msgBox = $('<li class="' + (cls || 'info') + '">' + msg + '</li>');
     $('#messages').prepend(msgBox);
-    setTimeout(function () {
+    setTimeout(() => {
       msgBox.slideUp('fast', function () { $(this).remove(); });
     }, 3000);
   }
@@ -215,19 +213,18 @@ class haste {
     // Split the key up
     var parts = key.split('.', 2);
     // Ask for what we want
-    var _this = this;
-    _this.doc = new haste_document(this);
-    _this.doc.load(parts[0], function (ret) {
+    this.doc = new haste_document(this);
+    this.doc.load(parts[0], (ret) => {
       if (ret) {
-        _this.$code.html(ret.value);
-        _this.setTitle(ret.key);
-        _this.fullKey();
-        _this.$textarea.val('').hide();
-        _this.$box.show().focus();
-        _this.addLineNumbers(ret.lineCount);
+        this.$code.html(ret.value);
+        this.setTitle(ret.key);
+        this.fullKey();
+        this.$textarea.val('').hide();
+        this.$box.show().focus();
+        this.addLineNumbers(ret.lineCount);
       }
       else {
-        _this.newDocument();
+        this.newDocument();
       }
     }, this.lookupTypeByExtension(parts[1]));
   }
@@ -243,84 +240,72 @@ class haste {
 
   // Lock the current document
   lockDocument() {
-    var _this = this;
-    this.doc.save(this.$textarea.val(), function (err, ret) {
+    this.doc.save(this.$textarea.val(), (err, ret) => {
       if (err) {
-        _this.showMessage(err.message, 'error');
+        this.showMessage(err.message, 'error');
       }
       else if (ret) {
-        _this.$code.html(ret.value);
-        _this.setTitle(ret.key);
-        var file = _this.baseUrl + ret.key;
+        this.$code.html(ret.value);
+        this.setTitle(ret.key);
+        var file = this.baseUrl + ret.key;
         if (ret.language) {
-          file += '.' + _this.lookupExtensionByType(ret.language);
+          file += '.' + this.lookupExtensionByType(ret.language);
         }
-        window.history.pushState(null, _this.appName + '-' + ret.key, file);
-        _this.fullKey();
-        _this.$textarea.val('').hide();
-        _this.$box.show().focus();
-        _this.addLineNumbers(ret.lineCount);
+        window.history.pushState(null, this.appName + '-' + ret.key, file);
+        this.fullKey();
+        this.$textarea.val('').hide();
+        this.$box.show().focus();
+        this.addLineNumbers(ret.lineCount);
       }
     });
   }
 
   configureButtons() {
-    var _this = this;
     this.buttons = [
       {
         $where: $('#box2 .save'),
         label: 'Save',
         shortcutDescription: 'control + s',
-        shortcut: function (evt) {
-          return evt.ctrlKey && (evt.keyCode === 83);
-        },
-        action: function () {
-          if (_this.$textarea.val().replace(/^\s+|\s+$/g, '') !== '') {
-            _this.lockDocument();
+        shortcut: (evt) => evt.ctrlKey && (evt.keyCode === 83),
+        action: () => {
+          if (this.$textarea.val().replace(/^\s+|\s+$/g, '') !== '') {
+            this.lockDocument();
           }
         }
       },
       {
         $where: $('#box2 .new'),
         label: 'New',
-        shortcut: function (evt) {
-          return evt.ctrlKey && evt.keyCode === 78;
-        },
+        shortcut: (evt) => evt.ctrlKey && evt.keyCode === 78,
         shortcutDescription: 'control + n',
-        action: function () {
-          _this.newDocument(!_this.doc.key);
+        action: () => {
+          this.newDocument(!this.doc.key);
         }
       },
       {
         $where: $('#box2 .duplicate'),
         label: 'Duplicate & Edit',
-        shortcut: function (evt) {
-          return _this.doc.locked && evt.ctrlKey && evt.keyCode === 68;
-        },
+        shortcut: (evt) => this.doc.locked && evt.ctrlKey && evt.keyCode === 68,
         shortcutDescription: 'control + d',
-        action: function () {
-          _this.duplicateDocument();
+        action: () => {
+          this.duplicateDocument();
         }
       },
       {
         $where: $('#box2 .raw'),
         label: 'Just Text',
-        shortcut: function (evt) {
-          return evt.ctrlKey && evt.shiftKey && evt.keyCode === 82;
-        },
+        shortcut: (evt) => evt.ctrlKey && evt.shiftKey && evt.keyCode === 82,
         shortcutDescription: 'control + shift + r',
-        action: function () {
-          window.location.href = _this.baseUrl + 'raw/' + _this.doc.key;
+        action: () => {
+          window.location.href = this.baseUrl + 'raw/' + this.doc.key;
         }
       },
       {
         $where: $('#box2 .twitter'),
         label: 'Twitter',
-        shortcut: function (evt) {
-          return _this.options.twitter && _this.doc.locked && evt.shiftKey && evt.ctrlKey && evt.keyCode == 84;
-        },
+        shortcut: (evt) => this.options.twitter && this.doc.locked && evt.shiftKey && evt.ctrlKey && evt.keyCode == 84,
         shortcutDescription: 'control + shift + t',
-        action: function () {
+        action: () => {
           window.open('https://twitter.com/share?url=' + encodeURI(window.location.href));
         }
       }
@@ -354,11 +339,9 @@ class haste {
   
   // Configure keyboard shortcuts for the textarea
   configureShortcuts() {
-    var _this = this;
-    $(document.body).keydown(function (evt) {
-      var button;
-      for (var i = 0; i < _this.buttons.length; i++) {
-        button = _this.buttons[i];
+    $(document.body).keydown((evt) => {
+      for (var i = 0; i < this.buttons.length; i++) {
+        const button = this.buttons[i];
         if (button.shortcut && button.shortcut(evt)) {
           evt.preventDefault();
           button.action();

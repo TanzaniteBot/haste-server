@@ -6,8 +6,8 @@ const fs = require('fs');
 
 const Generator = require('../../lib/key_generators/dictionary');
 
-describe('DictionaryGenerator', function() {
-  describe('options', function() {
+describe('DictionaryGenerator', () => {
+  describe('options', () => {
     it('should throw an error if given no options', () => {
       assert.throws(() => {
         new Generator();
@@ -20,7 +20,7 @@ describe('DictionaryGenerator', function() {
       }, Error);
     });
   });
-  describe('generation', function() {
+  describe('generation', () => {
     it('should return a key of the proper number of words from the given dictionary', () => {
       const path = '/tmp/haste-server-test-dictionary';
       const words = ['cat'];
