@@ -43,5 +43,6 @@
   "scripts": {
     "start": "node server.js",
     "test": "mocha --recursive"
-  }
+  },
+  "bundleDependencies": []
 }

@@ -1,51 +1,55 @@
 <!DOCTYPE html>
 <html>
-
 	<head>
-
 		<title>hastebin</title>
 		<meta charset="utf-8" />
-		<link rel="stylesheet" type="text/css" href="solarized_dark.css"/>
-		<link rel="stylesheet" type="text/css" href="application.css"/>
+		<link rel="stylesheet" type="text/css" href="solarized_dark.css" />
+		<link rel="stylesheet" type="text/css" href="application.css" />
 
 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 		<script type="text/javascript" src="highlight.min.js"></script>
 		<script type="text/javascript" src="application.min.js"></script>
 
-		<meta name="robots" content="noindex,nofollow"/>
+		<meta name="robots" content="noindex,nofollow" />
 
 		<script type="text/javascript">
 			let app = null;
 			// Handle pops
-			const handlePop = (evt) => {
+			const handlePop = evt => {
 				const path = evt.target.location.href;
-				if (path === app.baseUrl) { app.newDocument(true); }
-				else { app.loadDocument(path.split('/').slice(-1)[0]); }
+				if (path === app.baseUrl) {
+					app.newDocument(true);
+				} else {
+					app.loadDocument(path.split('/').slice(-1)[0]);
+				}
 			};
 			// Set up the pop state to handle loads, skipping the first load
 			// to make chrome behave like others:
 			// http://code.google.com/p/chromium/issues/detail?id=63040
 			setTimeout(() => {
-				window.onpopstate = (evt) => {
-					try { handlePop(evt); } catch(err) { /* not loaded yet */ }
+				window.onpopstate = evt => {
+					try {
+						handlePop(evt);
+					} catch (err) {
+						/* not loaded yet */
+					}
 				};
 			}, 1000);
 			// Construct app and load initial path
-			$(function() {
+			$(function () {
 				let baseUrl = window.location.href.split('/');
 				baseUrl = baseUrl.slice(0, baseUrl.length - 1).join('/') + '/';
 				app = new haste('hastebin', { twitter: false, baseUrl: baseUrl });
 				handlePop({ target: window });
 			});
 		</script>
-
 	</head>
 
 	<body>
 		<ul id="messages"></ul>
 
 		<div id="key">
-		  <div id="pointer" style="display:none;"></div>
+			<div id="pointer" style="display: none"></div>
 			<div id="box1">
 				<a href="about.md" class="logo"></a>
 			</div>
@@ -56,16 +60,14 @@
 				<button class="raw function button-picture">Just Text</button>
 				<button class="twitter function button-picture">Twitter</button>
 			</div>
-			<div id="box3" style="display:none;">
+			<div id="box3" style="display: none">
 				<div class="label"></div>
 				<div class="shortcut"></div>
 			</div>
 		</div>
 
 		<div id="linenos"></div>
-		<pre id="box" style="display:none;" class="hljs" tabindex="0"><code></code></pre>
-		<textarea spellcheck="false" style="display:none;"></textarea>
-
+		<pre id="box" style="display: none" class="hljs" tabindex="0"><code></code></pre>
+		<textarea spellcheck="false" style="display: none"></textarea>
 	</body>
-
 </html>
