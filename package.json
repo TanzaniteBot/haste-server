@@ -14,6 +14,7 @@
   },
   "main": "haste",
   "dependencies": {
+    "@swc/core": "^1.3.102",
     "busboy": "0.2.4",
     "connect": "^3.7.0",
     "connect-ratelimit": "0.0.7",
@@ -22,7 +23,6 @@
     "redis": "0.8.1",
     "redis-url": "0.1.0",
     "st": "^2.0.0",
-    "uglify-js": "3.1.6",
     "winston": "^2.0.0"
   },
   "devDependencies": {

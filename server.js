@@ -1,7 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 
-var uglify = require('uglify-js');
+const swc = require("@swc/core");
 var winston = require('winston');
 var connect = require('connect');
 var route = require('connect-route');
@@ -56,15 +56,36 @@ else {
 
 // Compress the static javascript assets
 if (config.recompressStaticAssets) {
-  var list = fs.readdirSync('./static');
-  for (var j = 0; j < list.length; j++) {
-    var item = list[j];
-    if ((item.indexOf('.js') === item.length - 3) && (item.indexOf('.min.js') === -1)) {
-      var dest = item.substring(0, item.length - 3) + '.min' + item.substring(item.length - 3);
-      var orig_code = fs.readFileSync('./static/' + item, 'utf8');
+  const list = fs.readdirSync('./static');
+  for (const item of list) {
+    if (item.endsWith('.js') && !item.endsWith('.min.js')) {
+      const min_dest = item.slice(0, -3) + '.min' + item.slice(-3);
+      const map_dest = `${min_dest}.map`;
+      const orig_code = fs.readFileSync('./static/' + item, 'utf8');
 
-      fs.writeFileSync('./static/' + dest, uglify.minify(orig_code).code, 'utf8');
-      winston.info('compressed ' + item + ' into ' + dest);
+      const minified = swc.transformSync(orig_code, {
+        jsc: {
+          target: 'es2022',
+          minify: {
+            compress: {
+              dead_code: false,
+              unused: false,
+            },
+            mangle: {
+              toplevel: false
+            }
+          },
+
+        },
+        sourceMaps: true,
+        minify: true,
+        filename: item,
+      });
+
+      fs.writeFileSync('./static/' + min_dest, minified.code + `//# sourceMappingURL=${map_dest}`, 'utf8');
+      winston.info('compressed ' + item + ' into ' + min_dest);
+      fs.writeFileSync('./static/' + map_dest, minified.map, 'utf8');
+      winston.info('compressed ' + item + ' into ' + map_dest);
     }
   }
 }
