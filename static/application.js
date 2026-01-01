@@ -1,3 +1,4 @@
+// @ts-check
 /* global $, hljs, window, document */
 
 /**
@@ -83,6 +84,12 @@ class haste_document {
 }
 
 /**
+ * @typedef {Object} HasteOptions
+ * @prop {boolean} [twitter]
+ * @prop {string} [baseUrl]
+ */
+
+/**
  * represents the paste application
  */
 class haste {
@@ -126,6 +133,26 @@ class haste {
 		swift: 'swift'
 	};
 
+	/** @type {string} */
+	appName;
+	/** @type {JQuery<HTMLElement>} */
+	$textarea;
+	/** @type {JQuery<HTMLElement>} */
+	$box
+	/** @type {JQuery<HTMLElement>} */
+	$code
+	/** @type {JQuery<HTMLElement>} */
+	$linenos
+
+	options
+	baseUrl;
+
+
+
+	/**
+	 * @param {String} appName 
+	 * @param {HasteOptions} options 
+	 */
 	constructor(appName, options) {
 		this.appName = appName;
 		this.$textarea = $('textarea');
@@ -171,11 +198,9 @@ class haste {
 
 	// Set the key up for certain things to be enabled
 	configureKey(enable) {
-		let $this,
-			i = 0;
 		$('#box2 .function').each(function () {
-			$this = $(this);
-			for (i = 0; i < enable.length; i++) {
+			const $this = $(this);
+			for (let i = 0; i < enable.length; i++) {
 				if ($this.hasClass(enable[i])) {
 					$this.addClass('enabled');
 					return true;
@@ -187,6 +212,7 @@ class haste {
 
 	// Remove the current document (if there is one)
 	// and set up for a new one
+	/** @param {boolean} [hideHistory] */
 	newDocument(hideHistory) {
 		this.$box.hide();
 		this.doc = new haste_document(this);
@@ -285,7 +311,18 @@ class haste {
 		});
 	}
 
+	/**
+	 * @typedef {Object} Button
+	 * @prop {JQuery<HTMLElement>} $where
+	 * @prop {string} label
+	 * @prop {string} shortcutDescription
+	 * @prop {(evt: any) => boolean} shortcut
+	 * @prop {() => void} action
+	 * @prop {boolean} [clickDisabled]
+	 */
+
 	configureButtons() {
+		/** @type {Button[]} */
 		this.buttons = [
 			{
 				$where: $('#box2 .save'),
@@ -340,6 +377,9 @@ class haste {
 		}
 	}
 
+	/**
+	 * @param {Button} options 
+	 */
 	configureButton(options) {
 		// Handle the click action
 		options.$where.click(function (evt) {
@@ -365,8 +405,7 @@ class haste {
 	// Configure keyboard shortcuts for the textarea
 	configureShortcuts() {
 		$(document.body).keydown(evt => {
-			for (let i = 0; i < this.buttons.length; i++) {
-				const button = this.buttons[i];
+			for (const button of this.buttons || []) {
 				if (button.shortcut && button.shortcut(evt)) {
 					evt.preventDefault();
 					button.action();
