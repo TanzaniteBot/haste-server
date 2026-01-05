@@ -1,6 +1,6 @@
-const { describe, it } = require('node:test');
-const assert = require('assert');
-const Generator = require('../../lib/key_generators/phonetic');
+import { describe, it } from 'node:test';
+import * as assert from 'node:assert';
+import Generator from '../../lib/key_generators/phonetic.js';
 const vowels = 'aeiou';
 const consonants = 'bcdfghjklmnpqrstvwxyz';
 

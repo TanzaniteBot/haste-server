@@ -1,18 +1,18 @@
-const http = require('http');
-const fs = require('fs');
+import { createServer } from 'http';
+import { readFileSync, readdirSync, writeFileSync } from 'fs';
 
-const swc = require('@swc/core');
-const winston = require('winston');
-const connect = require('connect');
-const route = require('connect-route');
-const connect_st = require('st');
-const connect_rate_limit = require('connect-ratelimit');
+import { transformSync } from '@swc/core';
+import winston from 'winston';
+import connect from 'connect';
+import route from 'connect-route';
+import connect_st from 'st';
+import connect_rate_limit from 'connect-ratelimit';
 
-const DocumentHandler = require('./lib/document_handler');
+import DocumentHandler from './lib/document_handler.js';
 
 // Load the configuration and set some defaults
 const configPath = process.argv.length <= 2 ? 'config.js' : process.argv[2];
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+const config = JSON.parse(readFileSync(configPath, 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
 
@@ -43,24 +43,24 @@ if (!config.storage.type) {
 let Store, preferredStore;
 
 if (process.env.REDISTOGO_URL && config.storage.type === 'redis') {
-	const redisClient = require('redis-url').connect(process.env.REDISTOGO_URL);
-	Store = require('./lib/document_stores/redis');
+	const redisClient = (await import('redis-url')).connect(process.env.REDISTOGO_URL);
+	Store = (await import('./lib/document_stores/redis.js')).default;
 	preferredStore = new Store(config.storage, redisClient);
 } else {
-	Store = require('./lib/document_stores/' + config.storage.type);
+	Store = (await import('./lib/document_stores/' + config.storage.type + '.js')).default;
 	preferredStore = new Store(config.storage);
 }
 
 // Compress the static javascript assets
 if (config.recompressStaticAssets) {
-	const list = fs.readdirSync('./static');
+	const list = readdirSync('./static');
 	for (const item of list) {
 		if (item.endsWith('.js') && !item.endsWith('.min.js')) {
 			const min_dest = item.slice(0, -3) + '.min' + item.slice(-3);
 			const map_dest = `${min_dest}.map`;
-			const orig_code = fs.readFileSync('./static/' + item, 'utf8');
+			const orig_code = readFileSync('./static/' + item, 'utf8');
 
-			const minified = swc.transformSync(orig_code, {
+			const minified = transformSync(orig_code, {
 				jsc: {
 					target: 'es2022',
 					minify: {
@@ -78,9 +78,9 @@ if (config.recompressStaticAssets) {
 				filename: item
 			});
 
-			fs.writeFileSync('./static/' + min_dest, minified.code + `//# sourceMappingURL=${map_dest}`, 'utf8');
+			writeFileSync('./static/' + min_dest, minified.code + `//# sourceMappingURL=${map_dest}`, 'utf8');
 			winston.info('compressed ' + item + ' into ' + min_dest);
-			fs.writeFileSync('./static/' + map_dest, minified.map, 'utf8');
+			writeFileSync('./static/' + map_dest, minified.map, 'utf8');
 			winston.info('compressed ' + item + ' into ' + map_dest);
 		}
 	}
@@ -89,7 +89,7 @@ if (config.recompressStaticAssets) {
 // Send the static documents into the preferred store, skipping expirations
 for (let name in config.documents) {
 	const path = config.documents[name];
-	const data = fs.readFileSync(path, 'utf8');
+	const data = readFileSync(path, 'utf8');
 	winston.info('loading static document', { name: name, path: path });
 	if (data) {
 		preferredStore.set(
@@ -108,7 +108,7 @@ for (let name in config.documents) {
 // Pick up a key generator
 const pwOptions = config.keyGenerator || {};
 pwOptions.type ||= 'random';
-const gen = require('./lib/key_generators/' + pwOptions.type);
+const gen = (await import('./lib/key_generators/' + pwOptions.type + '.js')).default;
 const keyGenerator = new gen(pwOptions);
 
 // Configure the document handler
@@ -145,10 +145,11 @@ app.use(
 	})
 );
 
+
 // Otherwise, try to match static files
 app.use(
 	connect_st({
-		path: __dirname + '/static',
+		path: import.meta.dirname + '/static',
 		content: { maxAge: config.staticMaxAge },
 		passthrough: true,
 		index: false
@@ -169,12 +170,12 @@ app.use(
 // And match index
 app.use(
 	connect_st({
-		path: __dirname + '/static',
+		path: import.meta.dirname + '/static',
 		content: { maxAge: config.staticMaxAge },
 		index: 'index.html'
 	})
 );
 
-http.createServer(app).listen(config.port, config.host);
+createServer(app).listen(config.port, config.host);
 
 winston.info('listening on ' + config.host + ':' + config.port);

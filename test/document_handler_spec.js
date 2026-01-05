@@ -1,8 +1,8 @@
-const { describe, it } = require('node:test');
-const assert = require('assert');
+import { describe, it } from 'node:test';
+import * as assert from 'node:assert';
 
-const DocumentHandler = require('../lib/document_handler');
-const Generator = require('../lib/key_generators/random');
+import DocumentHandler from '../lib/document_handler.js';
+import Generator from '../lib/key_generators/random.js';
 
 describe('document_handler', () => {
 	describe('randomKey', () => {

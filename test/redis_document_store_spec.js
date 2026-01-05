@@ -1,10 +1,11 @@
-const { describe, it, afterEach } = require('node:test');
-const assert = require('assert');
+import { describe, it, afterEach } from 'node:test';
 
-const winston = require('winston');
+import * as assert from 'node:assert';
+import winston from 'winston';
+
 winston.remove(winston.transports.Console);
 
-const RedisDocumentStore = require('../lib/document_stores/redis');
+import RedisDocumentStore from '../lib/document_stores/redis.js';
 
 describe('redis_document_store', () => {
 	/* reconnect to redis on each test */
@@ -37,7 +38,7 @@ describe('redis_document_store', () => {
 						done();
 					});
 				},
-				true
+				true,
 			);
 		});
 
