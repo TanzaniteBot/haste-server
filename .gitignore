@@ -8,3 +8,7 @@ docker-compose.override.yml
 
 ./config.json
 .idea
+
+/result
+/.direnv
+/.redis
